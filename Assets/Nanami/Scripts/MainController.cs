@@ -159,7 +159,7 @@ namespace Nanami
                 if (image.TrackingState == TrackingState.Tracking && outTransform == null)
                 {
                     //图片被识别，建立锚点
-                    BuildAchor(image);
+                    BuildAnchor(image);
 
                     //进入追踪状态
                     status = Status.tracking;
@@ -177,20 +177,20 @@ namespace Nanami
         /// 建立锚点
         /// </summary>
         /// <param name="image">识别图片</param>
-        private void BuildAchor(AugmentedImage image)
+        private void BuildAnchor(AugmentedImage image)
         {
             //建立锚点
             Anchor anchor = image.CreateAnchor(image.CenterPose);
 
-            Transform location = GameObject.Find("Locations/" + image.Name).transform;
-            if (location != null)
+            //修改导航空间位置
+            Transform location = GameObject.Find("Map/Locations/" + image.Name).transform;
+            Transform map = GameObject.Find("Map").transform;
+            if (location != null && map != null)
             {
-                location.parent = anchor.transform;
-                location.localPosition = Vector3.zero;
-                location.localRotation = Quaternion.Euler(90f, 0f, 0f);
-                location.parent = null;
-
-                dictRoom.Add(image.DatabaseIndex, location);
+                map.position = anchor.transform.position;
+                map.eulerAngles = anchor.transform.eulerAngles;
+                map.Rotate(90f, 0, 0, Space.Self);
+                map.position = map.position - location.localPosition;
             }
         }
         /// <summary>
@@ -198,6 +198,7 @@ namespace Nanami
         /// </summary>
         private void StartTrack()
         {
+            waitUI.SetActive(false);
         }
     }
 }
